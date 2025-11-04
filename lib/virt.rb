@@ -83,6 +83,16 @@ class DomainInfo < Data.define(:os_type, :state, :cpus, :max_memory, :used_memor
   end
 end
 
+# Info about host CPU:
+#
+# - `model` {String} e.g. "x86_64"
+# - `sockets`, `cores_per_socket`, `threads_per_core`: {Integer}
+class CpuInfo < Data.define(:model, :sockets, :cores_per_socket, :threads_per_core)
+  def cpus
+    sockets * cores_per_socket * threads_per_core
+  end
+end
+
 # A virt client, controls virt via the `virsh` program.
 # Install the `virsh` program via `sudo apt install libvirt-clients`
 class VirtCmd
@@ -138,6 +148,14 @@ class VirtCmd
   def self.available?
     !(`which virsh`.strip.empty?)
   end
+  
+  # @return [CpuInfo]
+  def hostinfo
+    virsh_nodeinfo = `virsh nodeinfo`
+    values = virsh_nodeinfo.lines.filter { |it| !it.strip.empty? } .map { |it| it.split ':' } .to_h
+    values = values.transform_values(&:strip)
+    CpuInfo.new(values['CPU model'], values['CPU socket(s)'].to_i, values['Core(s) per socket'].to_i, values['Thread(s) per core'].to_i)
+  end
 end
 
 def library_available?(name)
@@ -170,7 +188,7 @@ class LibVirtClient
   
   # Returns all domains, in all states.
   # @return [Array<Domain>] domains
-  def domains()
+  def domains
     running_vm_ids = @conn.list_domains
     stopped_vm_names = @conn.list_defined_domains
     running = running_vm_ids.map do |id|
