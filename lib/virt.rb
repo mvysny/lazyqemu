@@ -83,7 +83,7 @@ class DomainInfo < Data.define(:os_type, :state, :cpus, :max_memory, :used_memor
 end
 
 # A virt client, controls virt via the `virsh` program.
-# Install program via `sudo apt install libvirt-clients`
+# Install the `virsh` program via `sudo apt install libvirt-clients`
 class VirtCmd
   # Returns all domains, in all states.
   # @param virsh_list [String | nil] Output of `virsh list --all`, for testing only
@@ -132,5 +132,14 @@ class VirtCmd
       persistent: values['Persistent'] == 'yes',
       security_model: values['Security model'])
   end
+end
+
+# Accessess libvirt via libvirt Ruby bindings. Way faster than [VirtCmd], and recommended.
+# Install the bindings via `sudo apt install ruby-libvirt`.
+#
+# - RubyDoc: https://ruby.libvirt.org/api/index.html
+# - Library homepage: https://ruby.libvirt.org/
+class LibVirt
+  # TODO
 end
 
