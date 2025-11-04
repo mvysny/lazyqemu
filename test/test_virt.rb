@@ -48,6 +48,17 @@ Security model: apparmor
 Security DOI:   0
 EOF
 
+VIRSH_NODEINFO=<<EOF
+CPU model:           x86_64
+CPU(s):              16
+CPU frequency:       1397 MHz
+CPU socket(s):       1
+Core(s) per socket:  8
+Thread(s) per core:  2
+NUMA cell(s):        1
+Memory size:         29987652 KiB
+EOF
+
 class TestVirt < Minitest::Test
   def test_domains
     d = VirtCmd.new.domains VIRSH_DOMAINS
@@ -64,6 +75,10 @@ class TestVirt < Minitest::Test
   def test_dominfo
     info = VirtCmd.new.dominfo(Domain.new(5, 'dummy', :running), VIRSH_DOMINFO)
     assert_equal 'hvm: shut_off; CPUs: 8; configured mem: 4 G/8 G (50%); persistent=true; security_model=apparmor', info.to_s
+  end
+  def test_hostinfo
+    info = VirtCmd.new.hostinfo(VIRSH_NODEINFO)
+    assert_equal 'x86_64: 1/8/2', info.to_s
   end
 end
 

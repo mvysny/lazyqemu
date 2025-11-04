@@ -91,6 +91,9 @@ class CpuInfo < Data.define(:model, :sockets, :cores_per_socket, :threads_per_co
   def cpus
     sockets * cores_per_socket * threads_per_core
   end
+  def to_s
+    "#{model}: #{sockets}/#{cores_per_socket}/#{threads_per_core}"
+  end
 end
 
 # A virt client, controls virt via the `virsh` program.
@@ -150,8 +153,8 @@ class VirtCmd
   end
   
   # @return [CpuInfo]
-  def hostinfo
-    virsh_nodeinfo = `virsh nodeinfo`
+  def hostinfo(virsh_nodeinfo = nil)
+    virsh_nodeinfo = virsh_nodeinfo || `virsh nodeinfo`
     values = virsh_nodeinfo.lines.filter { |it| !it.strip.empty? } .map { |it| it.split ':' } .to_h
     values = values.transform_values(&:strip)
     CpuInfo.new(values['CPU model'], values['CPU socket(s)'].to_i, values['Core(s) per socket'].to_i, values['Thread(s) per core'].to_i)
