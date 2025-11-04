@@ -13,9 +13,11 @@ bundle install
 bundle exec rake test
 ```
 
+If `bundle install` fails, try running `bundle config set --global path '~/.gem'`.
+
 ## Running
 
 ```
-ruby lib/lazyvirt.rb
+bin/lazyvirt
 ```
 

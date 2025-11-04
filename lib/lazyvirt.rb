@@ -1,6 +1,6 @@
-require_relative 'virt'
-require_relative 'window'
-require_relative 'sysinfo'
+require 'virt'
+require 'window'
+require 'sysinfo'
 require 'tty-cursor'
 
 virt = VirtCmd.new

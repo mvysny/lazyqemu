@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require_relative '../lib/sysinfo'
+require 'sysinfo'
 
 class TestMemoryUsage < Minitest::Test
   def test_format_byte_size

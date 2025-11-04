@@ -1,4 +1,4 @@
-require_relative 'sysinfo'
+require 'sysinfo'
 
 # A virt domain (=VM).
 #
