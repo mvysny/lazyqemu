@@ -72,6 +72,14 @@ class DomainInfo < Data.define(:os_type, :state, :cpus, :max_memory, :used_memor
   def running?
     state == :running
   end
+  
+  def configured_memory
+    MemoryUsage.new(max_memory, max_memory - used_memory)
+  end
+  
+  def to_s
+    "#{os_type}: #{state}; CPUs: #{cpus}; configured mem: #{configured_memory}; persistent=#{persistent}; security_model=#{security_model}"
+  end
 end
 
 # A virt client, controls virt via the `virsh` program.
@@ -110,11 +118,12 @@ class VirtCmd
   # Domain (VM) information. Also available when VM is shut off.
   #
   # @param domain [Domain] domain
+  # @param virsh_dominfo [String | nil] output of `virsh dominfo`, for testing only
   # @return [DomainInfo]
-  def dominfo(domain)
+  def dominfo(domain, virsh_dominfo = nil)
     did = domain.id || domain.name
-    lines = `virsh dominfo "#{did}"`.lines
-    values = lines.filter { |it| !it.strip.empty? } .map { |it| it.split ':' } .to_h
+    virsh_dominfo = virsh_dominfo || `virsh dominfo "#{did}"`
+    values = virsh_dominfo.lines.filter { |it| !it.strip.empty? } .map { |it| it.split ':' } .to_h
     values = values.transform_values(&:strip)
     state = values['State'].gsub(' ', '_').to_sym
     DomainInfo.new(os_type: values['OS Type'], state: state, cpus: values['CPU(s)'].to_i,
