@@ -90,6 +90,11 @@ class Screen
     @system.rect = Rect.new(0, 0, left_pane_w, 4)
     @vms.rect = Rect.new(0, 4, left_pane_w, 10)
   end
+  
+  def update_data
+    @system.update
+    @vms.update
+  end
 end
 
 screen = Screen.new(virt)
@@ -98,6 +103,10 @@ screen.calculate_window_sizes
 # Trap the WINCH signal (sent on terminal resize)
 trap("WINCH") do
   screen.calculate_window_sizes
+end
+
+scheduler.every '3s' do
+  screen.update_data
 end
 
 loop do
