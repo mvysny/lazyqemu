@@ -29,8 +29,8 @@ class SystemWindow < Window
     content do |lines|
       # CPU
       lines << @cpu
-      host_cpu_usage = @virt_cache.host_cpu_usage.to_i
-      lines << "     [#{@f.progress_bar(20, 100, { host_cpu_usage => :bright_blue })}]"
+      host_cpu_usage = @virt_cache.host_cpu_usage
+      lines << "     [#{@f.progress_bar(20, 100, { host_cpu_usage.to_i => :bright_blue })}] #{$p.bright_blue(host_cpu_usage)}% used"
       lines << @f.format(@virt_cache.host_mem_stat)
 
       # Memory
