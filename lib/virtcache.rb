@@ -38,6 +38,7 @@ class VirtCache
     @domain_data[domain].info.state || :other
   end
 
+  # Returns the CPU usage of a VM.
   # @param domain [DomainId]
   # @return [Float] CPU usage 0..100%, 100%=full usage of all host CPU cores.
   def cpu_usage(domain)
@@ -61,6 +62,12 @@ class VirtCache
   # @return [Integer] a sum of RSS usage of all running VMs
   def total_vm_rss_usage
     @domain_data.values.sum { |data| data.mem_stat.rss || 0 }
+  end
+  
+  # Sum of all CPU usages of all VMs.
+  # @return [Float] CPU usage 0..100%, 100%=full usage of all host CPU cores.
+  def total_vm_cpu_usage
+    @guest_cpu.values.sum
   end
 
   # @return [Float] recent CPU usage, 0..100%

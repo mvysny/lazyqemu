@@ -30,15 +30,15 @@ class SystemWindow < Window
       # CPU
       lines << @cpu
       host_cpu_usage = @virt_cache.host_cpu_usage
-      lines << "     [#{@f.progress_bar(20, 100, { host_cpu_usage.to_i => :bright_blue })}] #{$p.bright_blue(host_cpu_usage)}% used"
+      vm_cpu_usage = @virt_cache.total_vm_cpu_usage
+      lines << "     [#{@f.progress_bar(20, 100, { vm_cpu_usage.to_i => :magenta, host_cpu_usage.to_i => :bright_blue })}] #{$p.bright_blue(host_cpu_usage)}% used"
       lines << @f.format(@virt_cache.host_mem_stat)
 
       # Memory
       total_ram = @virt_cache.host_mem_stat.ram.total
       total_vm_rss_usage = @virt_cache.total_vm_rss_usage
       ram_use = { total_vm_rss_usage => :magenta, @virt_cache.host_mem_stat.ram.used => :bright_red }
-      lines << "     [#{@f.progress_bar(20, total_ram,
-                                        ram_use)}]  #{$p.magenta(format_byte_size(total_vm_rss_usage))} used by VMs"
+      lines << "     [#{@f.progress_bar(20, total_ram, ram_use)}]  #{$p.magenta(format_byte_size(total_vm_rss_usage))} used by VMs"
     end
   end
 end
@@ -59,8 +59,11 @@ class VMWindow < Window
         line = $p.white(domain_id.name)
         state = @virt_cache.state(domain_id)
         line += " #{@f.format_domain_state(state)}"
-        memstat = @virt_cache.memstat(domain_id) if domain_id.running?
-        line += " #{@f.format(memstat)}" unless memstat.nil?
+        if domain_id.running?
+          memstat = @virt_cache.memstat(domain_id)
+          line += " #{@f.format(memstat)}"
+          line += " CPU: #{@virt_cache.cpu_usage(domain_id).round(2)}%"
+        end
         lines << line
       end
     end
