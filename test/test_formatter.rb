@@ -21,4 +21,18 @@ class TestFormatter < Minitest::Test
     assert_equal "\e[34maa\e[31maaa\e[32maaaaa\e[0m",
                  @f.progress_bar(10, 10, { 15 => :green, 5 => :red, 2 => :blue }, 'a')
   end
+
+  def test_format_byte_size
+    assert_equal '0', format_byte_size(0)
+    assert_equal '999', format_byte_size(999)
+    assert_equal '1000', format_byte_size(1000)
+    assert_equal '1023', format_byte_size(1023)
+    assert_equal '1 K', format_byte_size(1024)
+    assert_equal '-1 K', format_byte_size(-1024)
+    assert_equal '1.5 K', format_byte_size(1536)
+    assert_equal '4.9 K', format_byte_size(5000)
+    assert_equal '24 M', format_byte_size(25_000_000)
+    assert_equal '8 G', format_byte_size(8_589_934_592)
+    assert_equal '8.0 G', format_byte_size(8_590_000_000)
+  end
 end
