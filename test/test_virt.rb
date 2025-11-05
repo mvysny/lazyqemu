@@ -60,20 +60,24 @@ Memory size:         29987652 KiB
 EOF
 
 class TestVirt < Minitest::Test
+  def initialize(arg)
+    super(arg)
+    @dummy_domain = Domain.new(DomainId.new(5, 'dummy'), :running)
+  end
   def test_domains
     d = VirtCmd.new.domains VIRSH_DOMAINS
-    assert_equal '5: Flow: running, -: BASE: shut_off, -: win11: shut_off', d.join(', ')
+    assert_equal '5: Flow: running, BASE: shut_off, win11: shut_off', d.join(', ')
   end
   def test_memstat
-    m = VirtCmd.new.memstat(Domain.new(5, 'dummy', :running), VIRSH_DOMMEMSTAT)
+    m = VirtCmd.new.memstat(@dummy_domain, VIRSH_DOMMEMSTAT)
     assert_equal '4 G(rss=3.5 G); guest: 1.3 G/3.2 G (40%) (unused=507 M, disk_caches=1.7 G)', m.to_s
   end
   def test_memstat_win
-    m = VirtCmd.new.memstat(Domain.new(5, 'dummy', :running), VIRSH_DOMMEMSTAT_WIN)
+    m = VirtCmd.new.memstat(@dummy_domain, VIRSH_DOMMEMSTAT_WIN)
     assert_equal '8 G(rss=1.5 G)', m.to_s
   end
   def test_dominfo
-    info = VirtCmd.new.dominfo(Domain.new(5, 'dummy', :running), VIRSH_DOMINFO)
+    info = VirtCmd.new.dominfo(@dummy_domain, VIRSH_DOMINFO)
     assert_equal 'hvm: shut_off; CPUs: 8; configured mem: 4 G/8 G (50%); persistent=true; security_model=apparmor', info.to_s
   end
   def test_hostinfo

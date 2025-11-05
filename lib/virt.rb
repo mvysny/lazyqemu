@@ -1,16 +1,30 @@
 require_relative 'sysinfo'
 
-# A virt domain (=VM).
+# A virt domain (=VM) identifier.
 #
 # - `id` {Integer} - temporary ID, only available when running. May be `nil`
 # - `name` {String} - displayable name
+class DomainId < Data.define(:id, :name)
+  def to_s
+    id.nil? ? name : "#{id}: #{name}"
+  end
+end
+
+# A virt domain (=VM).
+#
+# - `id` {DomainId} - temporary ID, only available when running. May be `nil`
 # - `state` {Symbol} - one of `:running`, `:shut_off`, `:paused`, `:other`
-class Domain < Data.define(:id, :name, :state)
+class Domain < Data.define(:id, :state)
+  # @return [String] displayable domain name
+  def name
+    id.name
+  end
+  # @return [Boolean]
   def running?
     state == :running
   end
   def to_s
-    "#{id || '-'}: #{name}: #{state}"
+    "#{id}: #{state}"
   end
 end
 
@@ -111,7 +125,7 @@ class VirtCmd
       raise "Unparsable line: #{line}" if m.nil?
       id = m[1] == '-' ? nil : m[1].to_i
       state = m[3].gsub(' ', '_').to_sym
-      Domain.new(id, m[2].strip, state)
+      Domain.new(DomainId.new(id, m[2].strip), state)
     end
     list
   end
@@ -197,7 +211,7 @@ class LibVirtClient
     running = running_vm_ids.map do |id|
       d = @conn.lookup_domain_by_id(id)    # Libvirt::Domain
       state = @states[d.state[0]] || :other
-      Domain.new(id, d.name, state)
+      Domain.new(DomainId.new(id, d.name), state)
     end
     stopped = stopped_vm_names.map do |name|
       d = @conn.lookup_domain_by_name(name)    # Libvirt::Domain

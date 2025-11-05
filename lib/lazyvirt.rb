@@ -18,6 +18,7 @@ class Formatter
   def format(what)
     return format_cpu(what) if what.is_a? CpuInfo
     return format_memory_stat(what) if what.is_a? MemoryStat
+    return format_memory_usage(what) if what.is_a? MemoryUsage
     what.to_s
   end
   def format_cpu(cpu)
@@ -28,6 +29,8 @@ class Formatter
   end
   def format_memory_usage(mu)
     "#{@p.cyan(format_byte_size(mu.used))}/#{@p.cyan(format_byte_size(mu.total))} (#{@p.cyan(mu.percent_used)}%)"
+  end
+  def format_domain(domain, virt)
   end
 end
 
@@ -62,7 +65,7 @@ class VMWindow < Window
     domains = @virt.domains.sort_by(&:name)    # Array<Domain>
     content do |lines|
       domains.each do |domain|
-        lines << domain.to_s
+        lines << domain.name
         lines << @virt.dominfo(domain)
         lines << @virt.memstat(domain) if domain.running?
       end
