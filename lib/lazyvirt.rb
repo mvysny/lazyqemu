@@ -1,63 +1,18 @@
-require 'virt'
-require 'window'
-require 'sysinfo'
-require 'virtcache'
+require_relative 'virt'
+require_relative 'window'
+require_relative 'sysinfo'
+require_relative 'virtcache'
 require 'tty-cursor'
 require 'tty-screen'
 require 'rufus-scheduler'
 require 'io/console'
+require_relative 'formatter'
 
 scheduler = Rufus::Scheduler.new
 
 virt = VirtCmd.new
 # virt = LibVirtClient.new
 virt_cache = VirtCache.new(virt)
-
-class Formatter
-  def initialize
-    @p = Pastel.new
-  end
-
-  def format(what)
-    return format_cpu(what) if what.is_a? CpuInfo
-    return format_memory_stat(what) if what.is_a? MemoryStat
-    return format_mem_stat(what) if what.is_a? MemStat
-    return format_memory_usage(what) if what.is_a? MemoryUsage
-
-    what.to_s
-  end
-
-  # @param cpu [CpuInfo]
-  def format_cpu(cpu)
-    "#{@p.bright_blue('CPU')}: #{@p.bright_blue(cpu.model)}: #{@p.cyan(cpu.cpus)}:#{cpu.sockets}/#{cpu.cores_per_socket}/#{cpu.threads_per_core} sockets/cores/threads"
-  end
-
-  # @param ms [MemoryStat]
-  def format_memory_stat(ms)
-    "#{@p.bright_red('RAM')}: #{format(ms.ram)}; #{@p.bright_red('SWAP')}: #{format(ms.swap)}"
-  end
-
-  # @param mu [MemoryUsage]
-  def format_memory_usage(mu)
-    "#{@p.cyan(format_byte_size(mu.used))}/#{@p.cyan(format_byte_size(mu.total))} (#{@p.cyan(mu.percent_used)}%)"
-  end
-
-  # @param state [Symbol] one of `:running`, `:shut_off`, `:paused`
-  def format_domain_state(state)
-    case state
-    when :running then @p.green('running')
-    when :shut_off then @p.red('shut_off')
-    else; @p.yellow(state)
-    end
-  end
-
-  # @param ms [MemStat]
-  def format_mem_stat(ms)
-    result = "Host:#{format(ms.host_mem)}"
-    result += " Guest:#{format(ms.guest_mem)}" unless ms.guest_mem.nil?
-    result
-  end
-end
 
 class SystemWindow < Window
   # @param virt_cache [VirtCache]
