@@ -62,7 +62,7 @@ If the memory data doesn't seem to be updated in lazyvirt:
 - Either make sure your VM libvirt xml `<memballoon>` device contains the `<stats period='5' /> ` child element, OR
 - in the Virtual Machine Manager (`sudo apt install virt-manager`) preferences, polling, make sure "Poll Memory stats" is checked.
 
-When ballooning is enabled, 🎈 is shown next to the VM name in lazyvirt.
+When ballooning is enabled properly in a VM, 🎈 is shown next to the VM name in lazyvirt.
 
 More info at [VirtIO Memory Ballooning](https://pmhahn.github.io/virtio-balloon/).
 
