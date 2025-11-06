@@ -1,6 +1,7 @@
 require 'tty-box'
 require 'tty-cursor'
 require 'pastel'
+require 'unicode/display_width'
 
 $p = Pastel.new
 
@@ -68,7 +69,7 @@ class Window
     (0..(@rect.height - 3)).each do |line_no|
       line = (@lines[line_no] || '').to_s
       # strip the formatting before counting printable characters
-      length = $p.strip(line).length
+      length = Unicode::DisplayWidth.of($p.strip(line))
       line += ' ' * (width - length) if length < width
 
       print TTY::Cursor.move_to(@rect.left + 2, line_no + @rect.top + 1), line

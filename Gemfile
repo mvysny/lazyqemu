@@ -8,6 +8,7 @@ gem 'tty-box', '~> 0.7.0'
 gem 'tty-cursor', '~> 0.7.1'
 gem 'tty-screen'
 gem 'rufus-scheduler'
+gem 'unicode-display_width'
 
 group :development do
   gem 'rake', '~> 13.2'

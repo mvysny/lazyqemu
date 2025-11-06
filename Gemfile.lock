@@ -44,6 +44,7 @@ DEPENDENCIES
   tty-box (~> 0.7.0)
   tty-cursor (~> 0.7.1)
   tty-screen
+  unicode-display_width
   yard (~> 0.9.37)
 
 RUBY VERSION
