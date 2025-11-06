@@ -29,20 +29,26 @@ class VirtCache
   # @param domain [DomainId]
   # @return [MemStat | nil] nil if domain isn't running
   def memstat(domain)
-    @domain_data[domain].mem_stat
+    data(domain).mem_stat
+  end
+
+  # @param domain [DomainId]
+  # @return [DomainInfo | nil]
+  def data(domain)
+    @domain_data[domain]
   end
 
   # @param domain [DomainId]
   # @return [Symbol] one of `:running`, `:shut_off`, `:paused`, `:other`
   def state(domain)
-    @domain_data[domain].info.state || :other
+    data(domain).info.state || :other
   end
 
   # Returns the CPU usage of a VM.
   # @param domain [DomainId]
   # @return [Float] CPU usage 0..100%, 100%=full usage of all guest CPU cores.
   def cpu_usage(domain)
-    (@guest_cpu[domain] || 0.0) / @domain_data[domain].info.cpus
+    (@guest_cpu[domain] || 0.0) / data(domain).info.cpus
   end
 
   # Updates the cache

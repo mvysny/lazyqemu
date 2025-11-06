@@ -119,8 +119,11 @@ end
 # - `cpu_time` {Integer} milliseconds of used CPU time (user + system)
 # - `mem_stat` {MemStat} memory stats, nil if not running.
 class DomainData < Data.define(:info, :sampled_at, :cpu_time, :mem_stat)
+  def state
+    info.state
+  end
   def running?
-    info.state == :running
+    state == :running
   end
   # Calculates average CPU usage in the time period between older data and this data.
   # @param older_data [DomainData | nil]

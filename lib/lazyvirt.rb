@@ -56,17 +56,18 @@ class VMWindow < Window
     domains = @virt_cache.domains.sort_by(&:name) # Array<DomainId>
     content do |lines|
       domains.each do |domain_id|
-        state = @virt_cache.state(domain_id)
+        data = @virt_cache.data(domain_id)
+        state = data.state
         line = "#{@f.format_domain_state(state)} #{$p.white(domain_id.name)}"
-        if domain_id.running?
-          memstat = @virt_cache.memstat(domain_id)
+        memstat =data.mem_stat
+        if data.running?
           line += "   #{$p.bright_red('host RSS MEM')}: #{@f.format(memstat.host_mem)}"
         end
         lines << line
-        if domain_id.running?
+        if data.running?
           cpu_usage = @virt_cache.cpu_usage(domain_id).round(2)
-          guest_mem_usage = @virt_cache.memstat(domain_id).guest_mem
-          lines << "    #{$p.bright_blue('Guest CPU')}: [#{@f.progress_bar(20, 100, { cpu_usage.to_i => :bright_blue })}] #{$p.bright_blue(cpu_usage)}%"
+          guest_mem_usage = memstat.guest_mem
+          lines << "    #{$p.bright_blue('Guest CPU')}: [#{@f.progress_bar(20, 100, { cpu_usage.to_i => :bright_blue })}] #{$p.bright_blue(cpu_usage)}%; #{data.info.cpus} cpus"
           lines << "    #{$p.bright_red('Guest RAM')}: [#{@f.progress_bar(20, guest_mem_usage.total, { guest_mem_usage.used => :bright_red })}] #{@f.format(guest_mem_usage)}" unless guest_mem_usage.nil?
         end
       end
