@@ -37,7 +37,7 @@ the amount of memory the guest OS can use, *while the guest OS is running*. So, 
 you can shrink its memory, decreasing the memory footprint of the VM on host and giving host back a bit of memory.
 
 This is done by a 'balloon' program running on guest: it can 'inflate' itself by increasing its memory usage the guest OS.
-Host hypervisor knows that 'balloon'-occupied memory is unused by the guest OS, and therefore it can shrink the memory footprint of the VM.
+Host hypervisor knows that 'balloon'-occupied memory is unused by the guest OS, and therefore free to use by the host OS.
 
 When guest needs more memory, the balloon 'deflates': the 'balloon' program releases its memory. The VM starts using more memory on host OS,
 but this gives the guest OS more memory to work with.
