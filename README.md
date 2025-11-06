@@ -43,7 +43,7 @@ When guest needs more memory, the balloon 'deflates': the 'balloon' program rele
 but this gives the guest OS more memory to work with.
 
 You can inflate and deflate the balloon as many times as you need. By default the balloon inflating and deflating is manual work:
-you run `virsh setmem` to control the balloon size. However, lazyvirt can do this automatically for you (TODO not yet implemented).
+you run `virsh setmem` to control the balloon size. However, lazyvirt can do this automatically for you.
 
 ## Enabling Ballooning
 
@@ -65,6 +65,10 @@ If the memory data doesn't seem to be updated in lazyvirt:
 When ballooning is enabled, 🎈 is shown next to the VM name in lazyvirt.
 
 More info at [VirtIO Memory Ballooning](https://pmhahn.github.io/virtio-balloon/).
+
+## Automatic Balloon inflate/deflate
+
+TODO not yet implemented.
 
 # Developing
 
