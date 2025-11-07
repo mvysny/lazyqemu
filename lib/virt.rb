@@ -306,6 +306,9 @@ class LibVirtClient
   def close
     @conn.close
   end
+  
+  # TODO need to implement domain_data function, but libvirt-ruby doesn't have it atm:
+  # https://gitlab.com/libvirt/libvirt-ruby/-/issues/14
 
   # Returns all domains, in all states.
   # @return [Array<Domain>] domains
