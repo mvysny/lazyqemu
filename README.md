@@ -80,8 +80,7 @@ $ bundle exec rake test
 # Future plans
 
 - Automatic balloon control (needs to be enabled)
-- Add [libvirt](https://ruby.libvirt.org/) client
+- Add [libvirt](https://ruby.libvirt.org/) client: blocked by [bug #14](https://gitlab.com/libvirt/libvirt-ruby/-/issues/14)
 - Add dummy virt client
-- disk usage
 - detect obsolete memory data (when the mem stats aren't refreshed by `<memballoon>` or `virt-manager`, and display a 'turtle' next to the VM name
 
