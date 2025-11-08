@@ -247,13 +247,15 @@ class VirtCmd
   # @return [Array<DiskStat>] parsed stats
   private def parse_disk_data(data)
     count = data['block.count'].to_i
-    (0...count).map do |block_index|
+    result = []
+    (0...count).each do |block_index|
       name = data["block.#{block_index}.name"]
-      allocation = data["block.#{block_index}.allocation"].to_i
-      capacity = data["block.#{block_index}.capacity"].to_i
-      physical = data["block.#{block_index}.physical"].to_i
-      DiskStat.new(name, allocation, capacity, physical)
+      allocation = data["block.#{block_index}.allocation"]&.to_i
+      capacity = data["block.#{block_index}.capacity"]&.to_i
+      physical = data["block.#{block_index}.physical"]&.to_i
+      result << DiskStat.new(name, allocation, capacity, physical) unless allocation.nil? or capacity.nil? or physical.nil? or name.nil?
     end
+    result
   end
 
   # Returns all domains, in all states.
