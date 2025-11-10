@@ -104,10 +104,10 @@ class Screen
   # when TTY size changes.
   def calculate_window_sizes
     clear
-    _, sw = TTY::Screen.size
+    sh, sw = TTY::Screen.size
     left_pane_w = sw / 2
     @system.rect = Rect.new(0, 0, left_pane_w, 6)
-    @vms.rect = Rect.new(0, 6, left_pane_w, 14)
+    @vms.rect = Rect.new(0, 6, left_pane_w, sh - 6)
   end
 
   def update_data
