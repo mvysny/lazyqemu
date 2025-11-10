@@ -7,15 +7,15 @@ class TestMemoryUsage < Minitest::Test
   def test_to_s
     assert_equal '0/0 (0%)', MemoryUsage.new(0, 0).to_s
     assert_equal '24/48 (50%)', MemoryUsage.new(48, 24).to_s
-    assert_equal '228 M/459 M (49%)', MemoryUsage.new(481_231_286, 242_134_623).to_s
-    assert_equal '2.2 G/4.5 G (49%)', MemoryUsage.new(4_812_312_860, 2_421_346_230).to_s
+    assert_equal '228M/459M (49%)', MemoryUsage.new(481_231_286, 242_134_623).to_s
+    assert_equal '2.2G/4.5G (49%)', MemoryUsage.new(4_812_312_860, 2_421_346_230).to_s
   end
 end
 
 class TestSysInfo < Minitest::Test
   def test_memory_stats
     s = SysInfo.new.memory_stats PROC_MEMINFO
-    assert_equal 'RAM: 5.9 G/58 G (10%), SWAP: 0/8.0 G (0%)', s.to_s
+    assert_equal 'RAM: 5.9G/58G (10%), SWAP: 0/8.0G (0%)', s.to_s
   end
 
   def test_cpu_usage

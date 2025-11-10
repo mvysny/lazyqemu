@@ -132,6 +132,6 @@ def format_byte_size(bytes)
                 value.round(1)
               end
 
-  "#{formatted} #{units[exp]}".strip
+  "#{formatted}#{units[exp]}".strip
 end
 

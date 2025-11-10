@@ -74,17 +74,17 @@ class TestVirt < Minitest::Test
 
   def test_memstat
     m = VirtCmd.new.memstat(@dummy_domain, VIRSH_DOMMEMSTAT)
-    assert_equal '4 G(rss=3.5 G); guest: 1.3 G/3.2 G (40%) (unused=507 M, disk_caches=1.7 G)', m.to_s
+    assert_equal '4G(rss=3.5G); guest: 1.3G/3.2G (40%) (unused=507M, disk_caches=1.7G)', m.to_s
   end
 
   def test_memstat_win
     m = VirtCmd.new.memstat(@dummy_domain, VIRSH_DOMMEMSTAT_WIN)
-    assert_equal '8 G(rss=1.5 G)', m.to_s
+    assert_equal '8G(rss=1.5G)', m.to_s
   end
 
   def test_dominfo
     info = VirtCmd.new.dominfo(@dummy_domain, VIRSH_DOMINFO)
-    assert_equal 'hvm: shut_off; CPUs: 8; configured mem: 4 G/8 G (50%)', info.to_s
+    assert_equal 'hvm: shut_off; CPUs: 8; configured mem: 4G/8G (50%)', info.to_s
   end
 
   def test_hostinfo
@@ -95,11 +95,11 @@ class TestVirt < Minitest::Test
   def test_domain_data_parse
     result = VirtCmd.new.domain_data(File.read('test/domstats0.txt'), 0)
     assert_equal 2, result.size
-    assert_equal ': running; CPUs: 8; configured mem: 12 G/12 G (100%), 12 G(rss=3.4 G); guest: 241 M/11 G (2%) (unused=11 G, disk_caches=37 M)',
+    assert_equal ': running; CPUs: 8; configured mem: 12G/12G (100%), 12G(rss=3.4G); guest: 241M/11G (2%) (unused=11G, disk_caches=37M)',
                  result['ubuntu'].to_s
-    assert_equal ': shut_off; CPUs: 4; configured mem: 8 G/8 G (100%), 8 G(rss=0)', result['win11'].to_s
-    assert_equal 'sda: 18 G/128 G (13.99%); physical 18 G (2.88% overhead)', result['win11'].disk_stat.join(',')
-    assert_equal 'vda: 23 G/64 G (36.02%); physical 25 G (9.31% overhead)', result['ubuntu'].disk_stat.join(',')
+    assert_equal ': shut_off; CPUs: 4; configured mem: 8G/8G (100%), 8G(rss=0)', result['win11'].to_s
+    assert_equal 'sda: 18G/128G (13.99%); physical 18G (2.88% overhead)', result['win11'].disk_stat.join(',')
+    assert_equal 'vda: 23G/64G (36.02%); physical 25G (9.31% overhead)', result['ubuntu'].disk_stat.join(',')
   end
 
   def test_domain_data_cpu_usage
@@ -115,8 +115,8 @@ end
 class TestDiskStat < Minitest::Test
   def test_to_s
     ds = DiskStat.new('vda', 20_348_669_952, 68_719_476_736, 20_452_605_952)
-    assert_equal 'vda: 19 G/64 G (29.61%); physical 19 G (0.51% overhead)', ds.to_s
+    assert_equal 'vda: 19G/64G (29.61%); physical 19G (0.51% overhead)', ds.to_s
     ds = DiskStat.new('sda', 18_022_993_920, 137_438_953_472, 23_508_287_488)
-    assert_equal 'sda: 17 G/128 G (13.11%); physical 22 G (30.43% overhead)', ds.to_s
+    assert_equal 'sda: 17G/128G (13.11%); physical 22G (30.43% overhead)', ds.to_s
   end
 end
