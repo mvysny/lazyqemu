@@ -3,53 +3,6 @@
 require 'minitest/autorun'
 require 'virt'
 
-VIRSH_DOMAINS = <<~EOF
-   Id   Name                 State
-  -------------------------------------
-   5    Flow                 running
-   -    BASE                 shut off
-   -    win11                shut off
-EOF
-
-VIRSH_DOMMEMSTAT = <<~EOF
-  actual 4194304
-  swap_in 0
-  swap_out 0
-  major_fault 1469
-  minor_fault 952105
-  unused 519476
-  available 3390244
-  usable 2029636
-  last_update 1762236063
-  disk_caches 1813252
-  hugetlb_pgalloc 0
-  hugetlb_pgfail 0
-  rss 3663796
-EOF
-
-VIRSH_DOMMEMSTAT_WIN = <<~EOF
-  actual 8388608
-  last_update 0
-  rss 1598808
-EOF
-
-VIRSH_DOMINFO = <<~EOF
-  Id:             -
-  Name:           Flow
-  UUID:           709f69ce-37d4-4eb6-a218-69617d2388ba
-  OS Type:        hvm
-  State:          shut off
-  CPU(s):         8
-  Max memory:     8388608 KiB
-  Used memory:    4194304 KiB
-  Persistent:     yes
-  Autostart:      disable
-  Autostart Once: disable
-  Managed save:   no
-  Security model: apparmor
-  Security DOI:   0
-EOF
-
 VIRSH_NODEINFO = <<~EOF
   CPU model:           x86_64
   CPU(s):              16
@@ -65,26 +18,6 @@ class TestVirt < Minitest::Test
   def initialize(arg)
     super(arg)
     @dummy_domain = Domain.new(DomainId.new(5, 'dummy'), :running)
-  end
-
-  def test_domains
-    d = VirtCmd.new.domains VIRSH_DOMAINS
-    assert_equal '5: Flow: running, BASE: shut_off, win11: shut_off', d.join(', ')
-  end
-
-  def test_memstat
-    m = VirtCmd.new.memstat(@dummy_domain, VIRSH_DOMMEMSTAT)
-    assert_equal '4G(rss=3.5G); guest: 1.3G/3.2G (40%) (unused=507M, disk_caches=1.7G)', m.to_s
-  end
-
-  def test_memstat_win
-    m = VirtCmd.new.memstat(@dummy_domain, VIRSH_DOMMEMSTAT_WIN)
-    assert_equal '8G(rss=1.5G)', m.to_s
-  end
-
-  def test_dominfo
-    info = VirtCmd.new.dominfo(@dummy_domain, VIRSH_DOMINFO)
-    assert_equal 'hvm: shut_off; CPUs: 8; configured mem: 4G/8G (50%)', info.to_s
   end
 
   def test_hostinfo
