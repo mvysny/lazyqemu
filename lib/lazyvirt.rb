@@ -11,8 +11,11 @@ require_relative 'formatter'
 scheduler = Rufus::Scheduler.new
 
 $p = Pastel.new
-virt = VirtCmd.new
+
+# Don't use LibVirtClient for now: it doesn't provide all necessary data
 # virt = LibVirtClient.new
+virt = VirtCmd.new if VirtCmd.available?
+virt ||= FakeVirtClient.new
 virt_cache = VirtCache.new(virt)
 
 class SystemWindow < Window
