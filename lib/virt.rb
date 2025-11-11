@@ -40,7 +40,7 @@ end
 
 # VM memory stats
 #
-# - `actual` {Integer} The actual memory size in bytes available with ballooning enabled.
+# - `actual` {Integer} The actually configured memory size in bytes, given to the VM by host.
 # - `unused` {Integer}  Inside the Linux kernel this actually is named `MemFree`.
 #   That memory is available for immediate use as it is currently neither used by processes
 #   or the kernel for caching. So it is really unused (and is just eating energy and provides no benefit).
@@ -48,7 +48,7 @@ end
 # - `available` {Integer} Memory in bytes available for the guest OS. Inside the Linux kernel this is
 #   named `MemTotal`. This is
 #   the maximum allowed memory, which is slightly less than the currently configured
-#   memory size, as the Linux kernel and BIOS need some space for themselves.
+#   memory size `actual`, as the Linux kernel and BIOS need some space for themselves.
 #   `nil` if ballooning is unavailable.
 # - `usable` {Integer} Inside the Linux kernel this is named `MemAvailable`. This consists
 #   of the free space plus the space, which can be easily reclaimed. This for example includes
@@ -135,8 +135,9 @@ end
 # A VM information
 #
 # - `info` {DomainInfo} info
-# - `sampled_at` {Integer} milliseconds since the epoch
-# - `cpu_time` {Integer} milliseconds of used CPU time (user + system)
+# - `sampled_at` {Integer} milliseconds since the epoch; you can use [:millis_now]
+# - `cpu_time` {Integer} milliseconds of used CPU time (user + system) since last sampling.
+#   Used to calculate CPU usage.
 # - `mem_stat` {MemStat} memory stats, nil if not running.
 # - `disk_stat` {Array<DiskStat>} disk stats, one per every connected disk
 class DomainData < Data.define(:info, :sampled_at, :cpu_time, :mem_stat, :disk_stat)
@@ -150,6 +151,11 @@ class DomainData < Data.define(:info, :sampled_at, :cpu_time, :mem_stat, :disk_s
 
   def balloon?
     mem_stat.guest_data_available?
+  end
+
+  # @return [Integer] now, represented as milliseconds since the epoch.
+  def self.millis_now
+    DateTime.now.strftime('%Q').to_i
   end
 
   # Calculates average CPU usage in the time period between older data and this data.
@@ -196,7 +202,7 @@ class VirtCmd
   # @return [Hash<String => DomainData>] domain data
   def domain_data(domstats_file = nil, sampled_at = nil)
     domstats_file ||= `virsh domstats`
-    sampled_at ||= DateTime.now.strftime('%Q').to_i
+    sampled_at ||= DomainData.millis_now
 
     # grab data
     data = {}
@@ -363,10 +369,12 @@ end
 # Produces random data
 class FakeVirtClient
   def initialize
-    @vms = { 'BASE': random_vm_info(:shut_off),
-             'Ubuntu': random_vm_info(:running),
-             'win11': random_vm_info(:running),
-             'Fedora': random_vm_info(:paused) }
+    @vms = { 'BASE' => FakeVirtClient.random_vm_info(:shut_off),
+             'Ubuntu' => FakeVirtClient.random_vm_info(:running),
+             'win11' => FakeVirtClient.random_vm_info(:running),
+             'Fedora' => FakeVirtClient.random_vm_info(:paused) }
+    # Maps {String} name to {DomainData}.
+    @last_domain_data = {}
   end
 
   # @return [Boolean] `true` - always available
@@ -381,13 +389,48 @@ class FakeVirtClient
 
   # @return [Hash{String => DomainData}]
   def domain_data
+    sampled_at = DomainData.millis_now
+    time_diff_millis = @last_sampled_at.nil? ? nil : sampled_at - @last_sampled_at
+    result = {}
+    @vms.each do |name, info|
+      prev_info = @last_domain_data[name]
+      cpu_usage = rand * info.cpus
+      cpu_time = prev_info.nil? ? 0.0 : prev_info.cpu_time + time_diff_millis * cpu_usage
+      mem_stat = FakeVirtClient.random_mem_stat(info)
+      disk_stat = [FakeVirtClient.random_disk_stat(name)]
+      result[name] = DomainData.new(info, sampled_at, cpu_time, mem_stat, disk_stat)
+    end
+    @last_sampled_at = sampled_at
+    @last_domain_data = result
+    result
   end
 
   private
 
-  # @param name [String]
+  # @param state [Symbol]
   # @return [DomainInfo]
-  def random_vm_info(state)
+  def self.random_vm_info(state)
     DomainInfo.new(state, rand(1..4), rand(1024 * 1024 * 1024..20 * 1024 * 1024 * 1024))
+  end
+
+  # @param info [DomainInfo]
+  # @return [MemStat]
+  def self.random_mem_stat(info)
+    actual = ((rand / 2 + 0.5) * info.max_memory).to_i
+    rss = actual
+    if info.running?
+      available = (actual * 0.9).to_i
+      disk_caches = (available * 0.3).to_i
+      usable = (available * 0.4).to_i
+      unused = usable - disk_caches
+    end
+    MemStat.new(actual, unused, available, usable, disk_caches, rss)
+  end
+
+  def self.random_disk_stat(name)
+    capacity = 128 * 1024 * 1024 * 1024
+    allocation = (rand(50..60) * capacity / 100).to_i
+    physical = (rand(90..110) * allocation / 100).to_i
+    DiskStat.new(name.include?('win') ? 'sda' : 'vda', allocation, capacity, physical)
   end
 end
