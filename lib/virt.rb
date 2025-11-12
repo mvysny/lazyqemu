@@ -268,6 +268,14 @@ class VirtCmd
     CpuInfo.new(values['CPU model'], values['CPU socket(s)'].to_i, values['Core(s) per socket'].to_i,
                 values['Thread(s) per core'].to_i)
   end
+
+  # @param domainid [DomainId]
+  # @param new_active [Integer]
+  def set_active(domainid, new_active)
+    raise "#{new_active} must be at least 128m" if new_active < 128 * 1024 * 1024
+
+    `virsh setmem #{domainid.id || domainid.name} #{new_active / 1024}`
+  end
 end
 
 def library_available?(name)
@@ -403,8 +411,6 @@ class FakeVirtClient
     result
   end
 
-  private
-
   # @param name [String]
   # @return [DomainInfo]
   def self.random_vm_info(name)
@@ -430,5 +436,11 @@ class FakeVirtClient
     allocation = (rand(50..60) * capacity / 100).to_i
     physical = (rand(90..110) * allocation / 100).to_i
     DiskStat.new(name.include?('win') ? 'sda' : 'vda', allocation, capacity, physical)
+  end
+
+  # @param domainid [DomainId]
+  # @param new_active [Integer]
+  def set_active(domainid, new_active)
+    puts "#{domainid}: setting new memory to #{format_byte_size(new_active)}"
   end
 end

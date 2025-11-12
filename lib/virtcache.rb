@@ -33,7 +33,7 @@ class VirtCache
   end
 
   # @param domain [DomainId]
-  # @return [DomainInfo | nil]
+  # @return [DomainData | nil]
   def data(domain)
     @domain_data[domain]
   end
@@ -41,7 +41,26 @@ class VirtCache
   # @param domain [DomainId]
   # @return [Symbol] one of `:running`, `:shut_off`, `:paused`, `:other`
   def state(domain)
-    data(domain).info.state || :other
+    data(domain).state || :other
+  end
+
+  # @param domain [DomainId]
+  # @return [DomainInfo | nil]
+  def info(domain)
+    data(domain)&.info
+  end
+
+  # @param domain [DomainId]
+  # @param new_active [Integer] the new active parameter.
+  def set_active(domain, new_active)
+    info = info(domain)
+    raise "#{domain} not existing" if info.nil?
+
+    # sanity check the new_active
+    raise "#{new_active} must be at least 128m" if new_active < 128 * 1024 * 1024
+    raise "#{new_active} can not go over max #{info.max_memory}" if new_active > info.max_memory
+
+    @virt.set_active(domain, new_active)
   end
 
   # Returns the CPU usage of a VM.
@@ -56,10 +75,12 @@ class VirtCache
     # guest stats
     old_domain_data = @domain_data
     @domain_data = @virt.domain_data
-    @domain_data = @domain_data.map { |domain_name, data| [DomainId.new(data.running? ? domain_name.hash : nil, domain_name), data] }.to_h
+    @domain_data = @domain_data.map do |domain_name, data|
+      [DomainId.new(data.running? ? domain_name.hash : nil, domain_name), data]
+    end.to_h
     # guest CPU
-    @guest_cpu = @domain_data.map { |did, data| [did, data.cpu_usage(old_domain_data[did])] } .to_h
-    
+    @guest_cpu = @domain_data.map { |did, data| [did, data.cpu_usage(old_domain_data[did])] }.to_h
+
     # host stats
     @host_mem_stat = @sysinfo.memory_stats
     @host_cpu_usage = @sysinfo.cpu_usage(@host_cpu_usage)
@@ -69,7 +90,7 @@ class VirtCache
   def total_vm_rss_usage
     @domain_data.values.sum { |data| data.mem_stat.rss || 0 }
   end
-  
+
   # Sum of all CPU usages of all VMs.
   # @return [Float] CPU usage 0..100%, 100%=full usage of all host CPU cores.
   def total_vm_cpu_usage
