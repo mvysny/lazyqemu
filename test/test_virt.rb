@@ -49,18 +49,3 @@ class TestDiskStat < Minitest::Test
   end
 end
 
-class TestRandomVirt < Minitest::Test
-  def test_hostinfo_smoke
-    assert_equal 'x86_fake: 1/8/2', RandomVirt.new.hostinfo.to_s
-  end
-
-  def test_domain_data_smoke
-    client = RandomVirt.new
-    data = client.domain_data
-    assert data.is_a? Hash
-    assert_equal 4, data.size
-    sleep 0.02
-    data = client.domain_data
-    assert_equal 4, data.size
-  end
-end

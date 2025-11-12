@@ -47,8 +47,8 @@ class VMEmulator
     # @param name [String]
     # @param actual [Integer] initial value of [MemStat.actual].
     # @return [VM]
-    def self.simple(name, actual: 2 * 1024 * 1024 * 1024)
-      VM.new(DomainInfo.new(name, 1, actual * 256), actual, actual / 2)
+    def self.simple(name, actual: 2 * 1024 * 1024 * 1024, max_actual: actual * 256)
+      VM.new(DomainInfo.new(name, 1, max_actual), actual, actual / 2)
     end
 
     def name
@@ -114,9 +114,9 @@ class VMEmulator
     def to_mem_stat
       return nil unless running?
 
-      actual = @actual.value
+      actual = @actual.value.to_i
       available = actual - BIOS_KERNEL
-      apps = @mem_apps.value.clamp(0, available)
+      apps = @mem_apps.value.to_i.clamp(0, available)
       usable = available - apps
       disk_caches = @disk_caches.clamp(0, usable)
       rss = (apps + disk_caches).clamp(nil, available) + BIOS_KERNEL
@@ -133,6 +133,11 @@ class VMEmulator
 
     @vms[vm.name] = vm
     vm
+  end
+
+  # @return [VM | nil]
+  def vm(name)
+    @vms[name]
   end
 
   # Deletes VM with given name
@@ -157,4 +162,15 @@ class VMEmulator
 
     @vms[vmid].memory_active = active
   end
+end
+
+def vm_emulator_demo
+  e = VMEmulator.new
+  e.add(VMEmulator::VM.simple('BASE', actual: 8 * 1024 * 1024 * 1024, max_actual: 8 * 1024 * 1024 * 1024))
+  e.add(VMEmulator::VM.simple('Ubuntu', actual: 8 * 1024 * 1024 * 1024, max_actual: 16 * 1024 * 1024 * 1024))
+  e.add(VMEmulator::VM.simple('win11', actual: 8 * 1024 * 1024 * 1024, max_actual: 16 * 1024 * 1024 * 1024))
+  e.add(VMEmulator::VM.simple('Fedora', actual: 20 * 1024 * 1024 * 1024, max_actual: 40 * 1024 * 1024 * 1024))
+  e.vm('Ubuntu').start
+  e.vm('win11').start
+  e
 end

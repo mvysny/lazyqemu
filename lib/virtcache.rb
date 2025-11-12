@@ -87,7 +87,7 @@ class VirtCache
 
   # @return [Integer] a sum of RSS usage of all running VMs
   def total_vm_rss_usage
-    @domain_data.values.sum { |data| data.mem_stat.rss || 0 }
+    @domain_data.values.sum { |data| data.mem_stat&.rss || 0 }
   end
 
   # Sum of all CPU usages of all VMs.

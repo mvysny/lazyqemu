@@ -8,6 +8,7 @@ require 'rufus-scheduler'
 require 'io/console'
 require_relative 'formatter'
 require_relative 'ballooning'
+require_relative 'vm_emulator'
 
 scheduler = Rufus::Scheduler.new
 
@@ -16,7 +17,7 @@ $p = Pastel.new
 # Don't use LibVirtClient for now: it doesn't provide all necessary data
 # virt = LibVirtClient.new
 virt = VirtCmd.new if VirtCmd.available?
-virt ||= RandomVirt.new
+virt ||= vm_emulator_demo
 virt_cache = VirtCache.new(virt)
 
 class SystemWindow < Window
