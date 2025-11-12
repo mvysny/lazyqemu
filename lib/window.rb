@@ -112,7 +112,7 @@ class LogWindow < Window
       text_lines += exception.backtrace unless exception.backtrace.nil?
     end
     @log_lines += text_lines
-    @log_lines = @log_lines.last(rect.height - 3)
-    self.lines = @log_lines
+    @log_lines = @log_lines.last((rect.height - 2).clamp(0..100))
+    self.content = @log_lines
   end
 end
