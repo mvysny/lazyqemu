@@ -16,17 +16,17 @@ class VirtCache
     @cpu_info = virt.hostinfo
     @sysinfo = SysInfo.new
     @cpu_count = @cpu_info.cpus
-    # Hash{DomainId => DomainData}
+    # Hash{String => DomainData}
     @domain_data = {}
     update
   end
 
-  # @return [Set<DomainId>]
+  # @return [Set<String>]
   def domains
     @domain_data.keys
   end
 
-  # @param domain [DomainId]
+  # @param domain [String] domain name
   # @return [MemStat | nil] nil if domain isn't running
   def memstat(domain)
     data(domain)&.mem_stat
@@ -40,19 +40,19 @@ class VirtCache
     @domain_data[domain]
   end
 
-  # @param domain [DomainId]
+  # @param domain [String] domain name
   # @return [Symbol] one of `:running`, `:shut_off`, `:paused`, `:other`
   def state(domain)
     data(domain).state || :other
   end
 
-  # @param domain [DomainId]
+  # @param domain [String] domain name
   # @return [DomainInfo | nil]
   def info(domain)
     data(domain)&.info
   end
 
-  # @param domain [DomainId]
+  # @param domain [String]
   # @param new_active [Integer] the new active parameter.
   def set_active(domain, new_active)
     info = info(domain)
@@ -66,7 +66,7 @@ class VirtCache
   end
 
   # Returns the CPU usage of a VM.
-  # @param domain [DomainId]
+  # @param domain [String]
   # @return [Float] CPU usage 0..100%, 100%=full usage of all guest CPU cores.
   def cpu_usage(domain)
     (@guest_cpu[domain] || 0.0) / data(domain).info.cpus
@@ -77,9 +77,6 @@ class VirtCache
     # guest stats
     old_domain_data = @domain_data
     @domain_data = @virt.domain_data
-    @domain_data = @domain_data.map do |domain_name, data|
-      [DomainId.new(data.running? ? domain_name.hash : nil, domain_name), data]
-    end.to_h
     # guest CPU
     @guest_cpu = @domain_data.map { |did, data| [did, data.cpu_usage(old_domain_data[did])] }.to_h
 
