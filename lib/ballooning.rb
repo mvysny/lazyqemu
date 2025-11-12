@@ -1,11 +1,27 @@
 # frozen_string_literal: true
 
+class Ballooning
+  # @param virt_cache [VirtCache]
+  def initialize(virt_cache)
+    @virt_cache = virt_cache
+    # maps {DomainId} to {BallooningVM}
+    @ballooning = {}
+  end
+
+  def update
+    @ballooning = @virt_cache.domains.map do |domainid|
+      [domainid, @ballooning[domainid] || BallooningVM.new(@virt_cache, domainid)]
+    end.to_h
+    @ballooning.values.each(&:update)
+  end
+end
+
 # Controls the memory for one VM. The VM must support ballooning otherwise nothing is done.
 # The memory upgrade is instant, but the memory downgrade happens only once awhile.
 #
 # - `virt_cache` {VirtCache}
 # - `vmid` {DomainId}
-class Ballooning < Data.create(:virt_cache, :vmid)
+class BallooningVM < Data.define(:virt_cache, :vmid)
   # Call every 2 seconds, to control the VM
   def update
     mem_stat = virt_cache.memstat(vmid)
