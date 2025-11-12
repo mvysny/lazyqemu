@@ -9,8 +9,10 @@ class VMEmulator
     @hostinfo = hostinfo
     # Hash{String => VM}
     @vms = {}
+    @allow_set_active = true
   end
   attr_reader :hostinfo
+  attr_accessor :allow_set_active
 
   # A VM. When started, the memory used by guest apps slowly ramps to `started_initial_apps`. The `disk_caches` value stays
   # at around 1GB (or less, depending what makes most sense).
@@ -146,5 +148,13 @@ class VMEmulator
       data = DomainData.new(vm.info, state, DomainData.millis_now, 0, vm.to_mem_stat, [])
       [name, data]
     end.to_h
+  end
+
+  # @param vmid [String]
+  # @param active [Integer]
+  def set_active(vmid, active)
+    raise 'set_active not allowed' unless allow_set_active
+
+    @vms[vmid].memory_active = active
   end
 end
