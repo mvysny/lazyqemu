@@ -23,7 +23,11 @@ class VMEmulator
       raise "max_memory must be #{MIN_ACTUAL} or higher" if info.max_memory < 128 * 1024 * 1024
       raise "initial mem for apps must be at least #{MIN_APP_MEMORY}" if started_initial_apps < MIN_APP_MEMORY
 
+      @info = info
+      @started_initial_apps = started_initial_apps
       @disk_caches = 1 * 1024 * 1024 * 1024
+      @startup_seconds = 10
+      @shutdown_seconds = 5
     end
 
     # Creates a simple VM with 1 CPU, given amount of max_memory and `started_initial_usage` half of given memory.
@@ -38,8 +42,10 @@ class VMEmulator
       info.name
     end
 
+    attr_reader :info, :started_initial_apps
+
     def running?
-      !@started_at.nil? && (@shut_down_at.nil? || Time.now - @shut_down_at < 5)
+      !@started_at.nil? && (@shut_down_at.nil? || Time.now - @shut_down_at < @shutdown_seconds)
     end
 
     # "Starts" this VM.
@@ -52,7 +58,7 @@ class VMEmulator
       # Mem used by guest apps. This doesn't include disk_caches.
       # This can be higher than 'MemStat.available' - we pretend that the rest of the app memory
       # is swapped out.
-      @mem_apps = Interpolator::Linear.from_now(0, started_initial_usage, 10)
+      @mem_apps = Interpolator::Linear.from_now(0, started_initial_apps, @startup_seconds)
     end
 
     # Initiates a shutdown
@@ -60,7 +66,7 @@ class VMEmulator
       check_running
 
       @shut_down_at = Time.now
-      @mem_apps = Interpolator::Linear.from_now(@mem_apps.value, 0, 5)
+      @mem_apps = Interpolator::Linear.from_now(@mem_apps.value, 0, @shutdown_seconds)
     end
 
     def memory_app=(apps)
@@ -94,7 +100,7 @@ class VMEmulator
       apps = @mem_apps.value.clamp(0, available)
       usable = available - apps
       disk_caches = @disk_caches.clamp(0, usable)
-      rss = (@mem_apps + @disk_caches).clamp(nil, available) + BIOS_KERNEL
+      rss = (apps + disk_caches).clamp(nil, available) + BIOS_KERNEL
       unused = usable - disk_caches
       MemStat.new(actual, unused, available, usable, disk_caches, rss)
     end
