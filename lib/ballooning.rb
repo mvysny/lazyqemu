@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'interpolator'
-
 class Ballooning
   # @param virt_cache [VirtCache]
   def initialize(virt_cache)
@@ -137,11 +135,12 @@ class BallooningVM
 
   # Back off from this VM - don't downgrade the memory for at least 10 seconds
   def back_off(duration_seconds: @back_off_seconds)
-    @back_off = Interpolator::Linear.from_now(duration_seconds, 0, duration_seconds)
+    back_off_until = Time.now + duration_seconds
+    @back_off_until = back_off_until if @back_off_until.nil? || @back_off_until < back_off_until
   end
 
   # @return [Boolean] true if we are backing off from issuing any further memory decrease commands.
   def backing_off?
-    @back_off.value > 0
+    Time.now < @back_off_until
   end
 end
