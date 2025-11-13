@@ -24,7 +24,7 @@ class BallooningVM
   def initialize(virt_cache, vmid)
     @virt_cache = virt_cache
     @vmid = vmid
-    # don't go below 1GB, or above max_memory
+    # don't go below 1GB
     @min_active = 1 * 1024 * 1024 * 1024
     # After Ballooning decreases active memory, it will back off for 20 seconds
     # before trying to decrease the memory again. Observation shows that
@@ -32,6 +32,10 @@ class BallooningVM
     # some time (~15 second) to fully be applied. Let's not bother the VM with further
     # memory decrease commands until the VM fully settles in.
     @back_off_seconds = 20
+
+    # start by backing off. We don't know what state the VM is in - it could have been
+    # just started seconds ago.
+    back_off
   end
 
   # Call every 2 seconds, to control the VM
@@ -69,15 +73,16 @@ class BallooningVM
 
     # calculate min/max memory
     max_memory = info.max_memory
-    min_memory = (max_memory * 0.25).to_i
     return if @min_active > max_memory
 
-    min_memory = min_memory.clamp(@min_active, max_memory)
+    min_memory = @min_active.clamp(nil, max_memory)
     new_active = mem_stat.actual * (memory_delta + 100) / 100
     new_active = new_active.clamp(min_memory..max_memory)
     return if new_active == mem_stat.actual
 
     back_off
+
+    puts min_memory, mem_stat, new_active, max_memory, memory_delta
     @virt_cache.set_actual(@vmid, new_active)
   end
 
@@ -92,6 +97,6 @@ class BallooningVM
   def backing_off?
     return false if @back_off_since.nil?
 
-    Time.now - @back_off_since >= @back_off_seconds
+    Time.now - @back_off_since < @back_off_seconds
   end
 end
