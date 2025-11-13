@@ -30,7 +30,9 @@ class TestBallooningVM < Minitest::Test
     assert_equal 2 * 1024 * 1024 * 1024, vm.to_mem_stat.actual
 
     b = BallooningVM.new(virt_cache, 'vm0')
-    b.update # should issue no update
+    b.update
+    # should issue no update - the VM is just starting
+    assert_equal 'only 0% memory used, but backing off at the moment', b.status
 
     virt.allow_set_actual = true
     Timecop.freeze(Time.now + 10) do
@@ -38,7 +40,8 @@ class TestBallooningVM < Minitest::Test
       vm.memory_app = 4 * 1024 * 1024 * 1024
       # ballooning should issue the memory_resize command immediately
       b.update
-      assert_equal 5, vm.to_mem_stat.actual
+      assert_equal 'a', b.status
+      assert_equal 2.1 * 1024 * 1024 * 1024, vm.to_mem_stat.actual
     end
   end
 end
