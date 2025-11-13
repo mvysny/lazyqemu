@@ -76,6 +76,11 @@ class VMEmulator
       @mem_apps = Interpolator::Linear.from_now(0, started_initial_apps, @startup_seconds)
     end
 
+    # @return [Integer | nil] uptime in seconds or nil if shut down.
+    def uptime
+      running? ? Time.now - @started_at : nil
+    end
+
     # Initiates a shutdown
     def shut_down
       check_running
