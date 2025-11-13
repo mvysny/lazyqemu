@@ -77,14 +77,6 @@ class VirtCache
     @virt.set_actual(domain, new_actual)
   end
 
-  # Returns the CPU usage of a VM, with respect to host OS.
-  # @param domain [String]
-  # @return [Float] CPU usage 0..100%, 100%=full usage of all guest CPU cores.
-  def cpu_usage(domain)
-    c = cache(domain)
-    c.cpu_usage / c.info.cpus
-  end
-
   # VM cached data.
   # - `data` {DomainData}
   # - `cpu_usage` [Float] CPU usage in %; 100% means one CPU core was fully utilized. 0 or greater, may be greater than 100.
@@ -99,6 +91,13 @@ class VirtCache
     # @return [DomainInfo]
     def info
       data.info
+    end
+
+    # Returns the CPU usage of a VM, with respect to guest OS.
+    # @param domain [String]
+    # @return [Float] CPU usage 0..100%, 100%=full usage of all guest CPU cores.
+    def guest_cpu_usage
+      cpu_usage / info.cpus
     end
   end
 

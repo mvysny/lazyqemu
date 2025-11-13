@@ -74,7 +74,7 @@ class VMWindow < Window
         lines << line
         if data.running?
 
-          cpu_usage = @virt_cache.cpu_usage(domain_name).round(2)
+          cpu_usage = @virt_cache.cache(domain_name).guest_cpu_usage.round(2)
           guest_mem_usage = memstat.guest_mem
           lines << "    #{$p.bright_blue('Guest CPU')}: [#{@f.progress_bar(20, 100,
                                                                            [[cpu_usage.to_i, :bright_blue]])}] #{$p.bright_blue(cpu_usage)}%; #{data.info.cpus} #cpus"
@@ -137,6 +137,7 @@ end
 scheduler.every '2s' do
   virt_cache.update
   screen.update_data
+  # Needs to go after virt_cache.update so that it reads up-to-date values
   ballooning.update
 rescue StandardError => e
   $log.error 'Failed to update VM data', e: e
