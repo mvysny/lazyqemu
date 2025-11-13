@@ -41,6 +41,8 @@ class VMEmulator
       @disk_caches = 1 * 1024 * 1024 * 1024
       @startup_seconds = 10
       @shutdown_seconds = 5
+      # How many seconds it will take for the VM to decrease its active memory.
+      @decrease_active_seconds = 5
     end
 
     # Creates a simple VM with 1 CPU, given amount of max_memory and `started_initial_usage` half of given memory.
@@ -105,7 +107,7 @@ class VMEmulator
       @actual = if current <= actual
                   Interpolator::Const.new(actual)
                 else
-                  Interpolator::Linear.from_now(current, actual, 5)
+                  Interpolator::Linear.from_now(current, actual, @decrease_active_seconds)
                 end
     end
 
