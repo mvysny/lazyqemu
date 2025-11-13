@@ -18,6 +18,7 @@ class Ballooning
 
   # log statuses
   def log_statuses
+    return unless $log.debug_enabled?
     statuses = @ballooning.filter { |vmid, ballooning| ballooning.was_running? } .map { |vmid, ballooning| "#{vmid}: #{ballooning.status}" } .join ', '
     $log.debug 'Ballooning: ' + statuses
   end
