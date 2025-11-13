@@ -99,6 +99,7 @@ class Screen
     @system = SystemWindow.new(virt_cache)
     @vms = VMWindow.new(virt_cache)
     $log = LogWindow.new
+    $log.log_level = 'I' # one of D I W E
   end
 
   # Clears the TTY screen
@@ -136,7 +137,7 @@ end
 scheduler.every '2s' do
   virt_cache.update
   screen.update_data
-  # ballooning.update
+  ballooning.update
 rescue StandardError => e
   $log.error 'Failed to update VM data', e: e
 end
