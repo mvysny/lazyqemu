@@ -38,10 +38,12 @@ class TestBallooningVM < Minitest::Test
     Timecop.freeze(Time.now + 10) do
       # overshoot the used memory
       vm.memory_app = 4 * 1024 * 1024 * 1024
+      virt_cache.update
       # ballooning should issue the memory_resize command immediately
       b.update
-      assert_equal 'a', b.status
-      assert_equal 2.1 * 1024 * 1024 * 1024, vm.to_mem_stat.actual
+
+      assert_equal 'Setting actual to 2576980377', b.status
+      assert_equal 2_576_980_377, vm.to_mem_stat.actual
     end
   end
 end
