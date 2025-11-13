@@ -59,14 +59,14 @@ available to the guest OS. To enable ballooning:
 
 If the memory data doesn't seem to be updated in lazyvirt:
 
-- Either make sure your VM libvirt xml `<memballoon>` device contains the `<stats period='1' /> ` child element, OR
+- Either make sure your VM libvirt xml `<memballoon>` device contains the `<stats period='3' /> ` child element, OR
 - in the Virtual Machine Manager (`sudo apt install virt-manager`) preferences, polling, make sure "Poll Memory stats" is checked.
   However, this only works when the Virtual Machine Manager window is open. Therefore, first option is preferred.
 
-**Note:** refresh each 1 second may seem excessive, but this way Ballooning will have access to the most fresh data,
-and can quickly ramp up RAM when it's needed.
+**Note:** refresh each 3 seconds may seem excessive, but this way Ballooning will have access to the most fresh data,
+and can quickly ramp up RAM when it's needed. Actually, regardless of the setting, `virsh` refreshes the data once every 5 seconds anyway.
 
-When ballooning is enabled properly in a VM, 🎈 is shown next to the VM name in lazyvirt.
+When ballooning is enabled properly in a VM, 🎈 is shown next to the VM name in lazyvirt. If the balloon data is stale (not being refreshed), 🐢 is shown.
 
 More info at [VirtIO Memory Ballooning](https://pmhahn.github.io/virtio-balloon/).
 
