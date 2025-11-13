@@ -128,7 +128,7 @@ class VMEmulator
       disk_caches = @disk_caches.clamp(0, usable)
       rss = (apps + disk_caches).clamp(nil, available) + BIOS_KERNEL
       unused = usable - disk_caches
-      MemStat.new(actual, unused, available, usable, disk_caches, rss)
+      MemStat.new(actual, unused, available, usable, disk_caches, rss, DomainData.millis_now / 1000)
     end
   end
 

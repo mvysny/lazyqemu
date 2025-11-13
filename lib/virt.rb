@@ -26,9 +26,11 @@ require 'date'
 #   "actively" used by the QEMU process on the host system. QEMU by default
 #   only allocates the pages on demand when they are first accessed. A newly started VM actually
 #   uses only very few pages, but the number of pages increases with each new memory allocation.
+# - `last_updated` {Integer} seconds since epoch when the values have been retrieved from the VM.
+#   If this number stays unchanged, you need to setup VM refresh.
 #
 # More info here: https://pmhahn.github.io/virtio-balloon
-class MemStat < Data.define(:actual, :unused, :available, :usable, :disk_caches, :rss)
+class MemStat < Data.define(:actual, :unused, :available, :usable, :disk_caches, :rss, :last_updated)
   # @return [MemoryUsage | nil] the guest memory stats or nil if unavailable.
   def guest_mem
     guest_data_available? ? MemoryUsage.new(available, usable) : nil
@@ -192,13 +194,15 @@ class VirtCmd
                                    values['balloon.maximum'].to_i * 1024)
       cpu_time = values['cpu.time'].to_i / 1_000_000
       mem_stat = nil
-      if values.include? 'balloon.rss'
+      if values.include?('balloon.rss') && values.include?('balloon.last-update')
         mem_unused = values['balloon.unused']&.to_i&.*(1024)
         mem_usable = values['balloon.usable']&.to_i&.*(1024)
         mem_available = values['balloon.available']&.to_i&.*(1024)
+        last_updated = values['balloon.last-update'].to_i
+
         mem_stat = MemStat.new(mem_current, mem_unused, mem_available, mem_usable,
                                values['balloon.disk_caches']&.to_i&.*(1024),
-                               values['balloon.rss'].to_i * 1024)
+                               values['balloon.rss'].to_i * 1024, last_updated)
       end
 
       disk_stat = parse_disk_data(values)
