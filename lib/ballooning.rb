@@ -25,7 +25,7 @@ class Ballooning
     statuses = @ballooning.filter do |_vmid, ballooning|
       ballooning.was_running?
     end
-    statuses = statuses.map { |vmid, ballooning| "#{vmid}: #{ballooning.status.text}" }.join ', '
+    statuses = statuses.map { |vmid, ballooning| "#{vmid}: #{ballooning.status.text}" }.join "\n"
     $log.debug "Ballooning: #{statuses}"
   end
 
@@ -161,7 +161,11 @@ class BallooningVM
     new_actual = mem_stat.actual * (memory_delta + 100) / 100
     new_actual = new_actual.clamp(min_memory..max_memory)
     if new_actual == mem_stat.actual
-      @status = Status.new("New actual #{new_actual} is the same as current one #{mem_stat.actual}, doing nothing", 0)
+      @status = if memory_delta > 0
+                  Status.new("I want to increase memory (current usage of #{percent_used}% is over trigger #{@trigger_increase_at}%) but can't go over configured max mem #{format_byte_size(new_actual)}", 0)
+                else
+      Status.new("New actual #{format_byte_size(new_actual)} is the same as current one #{format_byte_size(mem_stat.actual)}, doing nothing", 0)
+                end
       return
     end
 
