@@ -28,12 +28,12 @@ class Ballooning
     statuses = statuses.map { |vmid, ballooning| "#{vmid}: #{ballooning.status.text}" }.join ', '
     $log.debug "Ballooning: #{statuses}"
   end
-end
 
-# @param vm_name [String] vm name
-# @return [Status | nil] the VM ballooning status
-def status(vm_name)
-  @ballooning[vm_name]&.status
+  # @param vm_name [String] vm name
+  # @return [Status | nil] the VM ballooning status
+  def status(vm_name)
+    @ballooning[vm_name]&.status
+  end
 end
 
 # Controls the memory for one VM. The VM must support ballooning otherwise nothing is done.
@@ -136,7 +136,7 @@ class BallooningVM
 
     # Return early if nothing to do
     if memory_delta.zero?
-      @status = Status.new("app memory in sweet spot (#{percent_used}), doing nothing")
+      @status = Status.new("app memory in sweet spot (#{percent_used}), doing nothing", 0)
       return
     end
 
