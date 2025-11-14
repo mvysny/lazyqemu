@@ -58,11 +58,17 @@ class BallooningVM
     # It takes ~15 seconds for a VM to start.
     @boot_back_off_seconds = 15
 
+    # When the guest mem usage (ommitting cache) is above this value, increase guest memory
+    @trigger_increase_at = 70
+
     # When increasing memory, increase by how much
-    @increase_memory_percent = 30
+    @increase_memory_by = 30
+
+    # When the guest mem usage (ommitting cache) is below this, start decreasing guest memory
+    @trigger_decrease_at = 60
 
     # When decreasing memory, decrease by how much
-    @decrease_memory_percent = 10
+    @decrease_memory_by = 10
 
     # start by backing off. We don't know what state the VM is in - it could have been
     # just started seconds ago.
@@ -122,16 +128,16 @@ class BallooningVM
     # 0..100
     memory_delta = 0
 
-    if percent_used >= 70
+    if percent_used >= @trigger_increase_at
       # Increase memory immediately
-      memory_delta = @increase_memory_percent
-    elsif percent_used <= 60
+      memory_delta = @increase_memory_by
+    elsif percent_used <= @trigger_decrease_at
       # decrease memory if not in back_off period
       if backing_off?
         @status = Status.new("only #{percent_used}% memory used, but backing off at the moment", 0)
         return
       end
-      memory_delta = -@decrease_memory_percent
+      memory_delta = -@decrease_memory_by
     end
 
     # Return early if nothing to do
