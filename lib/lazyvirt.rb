@@ -52,10 +52,12 @@ end
 
 class VMWindow < Window
   # @param virt_cache [VirtCache]
-  def initialize(virt_cache)
+  # @param ballooning [Ballooning]
+  def initialize(virt_cache, ballooning)
     super('[1]-VMs')
     @f = Formatter.new
     @virt_cache = virt_cache
+    @ballooning = ballooning
     update
   end
 
@@ -65,11 +67,11 @@ class VMWindow < Window
       domains.each do |domain_name|
         cache = @virt_cache.cache(domain_name)
         data = cache.data
-        lines << format_vm_overview_line(domain_name)
-        if data.running?
+        lines << format_vm_overview_line(cache)
 
+        if data.running?
           cpu_usage = @virt_cache.cache(domain_name).guest_cpu_usage.round(2)
-          guest_mem_usage = memstat.guest_mem
+          guest_mem_usage = cache.data.mem_stat.guest_mem
           lines << "    #{$p.bright_blue('Guest CPU')}: [#{@f.progress_bar(20, 100,
                                                                            [[cpu_usage.to_i, :bright_blue]])}] #{$p.bright_blue(cpu_usage)}%; #{data.info.cpus} #cpus"
           unless guest_mem_usage.nil?
@@ -84,13 +86,24 @@ class VMWindow < Window
     end
   end
 
-  def format_vm_overview_line(vm_name)
-    # VirtCache::VMCache
-    cache = @virt_cache.cache(domain_name)
-    line = "#{@f.format_domain_state(cache.data.state)} #{$p.white(vm_name)}"
+  # @param cache [VirtCache::VMCache]
+  # @return [String]
+  def format_vm_overview_line(cache)
+    line = "#{@f.format_domain_state(cache.data.state)} #{$p.white(cache.info.name)}"
     memstat = cache.data.mem_stat
-    if data.running?
-      line += " \u{1F388}" if data.balloon?
+    if cache.data.running?
+      line += " \u{1F388}" if cache.data.balloon?
+      balloon_status = @ballooning.status(cache.info.name)
+      unless balloon_status.nil?
+        sc = if balloon_status.memory_delta.negative?
+               "\u{2193}"
+             elsif balloon_status.memory_delta.positive?
+               "\u{2191}"
+             else
+               '-'
+             end
+        line += sc
+      end
       line += " \u{1F422}" if cache.stale?
       line += "   #{$p.bright_red('Host RSS RAM')}: #{@f.format(memstat.host_mem)}"
     end
@@ -100,11 +113,12 @@ end
 
 class Screen
   # @param virt_cache [VirtCache]
-  def initialize(virt_cache)
+  # @param ballooning [Ballooning]
+  def initialize(virt_cache, ballooning)
     @f = Formatter.new
     @virt_cache = virt_cache
     @system = SystemWindow.new(virt_cache)
-    @vms = VMWindow.new(virt_cache)
+    @vms = VMWindow.new(virt_cache, ballooning)
     $log = LogWindow.new
     $log.log_level = 'I' # one of D I W E
   end
@@ -131,9 +145,9 @@ class Screen
   end
 end
 
-screen = Screen.new(virt_cache)
-screen.calculate_window_sizes
 ballooning = Ballooning.new(virt_cache)
+screen = Screen.new(virt_cache, ballooning)
+screen.calculate_window_sizes
 
 # Trap the WINCH signal (sent on terminal resize)
 trap('WINCH') do
